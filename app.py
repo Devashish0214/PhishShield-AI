@@ -1,5 +1,6 @@
 """
 PhishShield AI — Real-time Phishing & Smishing Detection Engine
+<<<<<<< HEAD
 Hackathon-ready FastAPI backend with TF-IDF + Logistic Regression + heuristics.
 
 Runs fully locally on 127.0.0.1:8000. No cloud APIs. Messages never leave the machine.
@@ -8,10 +9,16 @@ Runs fully locally on 127.0.0.1:8000. No cloud APIs. Messages never leave the ma
 # ---------------------------------------------------------------------------
 # Imports
 # ---------------------------------------------------------------------------
+=======
+Hackathon-ready FastAPI backend with TF-IDF + Logistic Regression + heuristics
+"""
+
+>>>>>>> 6e9bd2496a7553bec49291037dacebb1e437e00b
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
+<<<<<<< HEAD
 
 # ML: convert text → numbers (TF-IDF), then classify (Logistic Regression)
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -31,6 +38,22 @@ import uvicorn     # ASGI server
 # ---------------------------------------------------------------------------
 # CORS allows the frontend (index.html / localhost:3000) to call this API
 # from the browser without being blocked by same-origin policy.
+=======
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.linear_model import LogisticRegression
+from sklearn.pipeline import Pipeline
+import re
+import time
+import uuid
+from datetime import datetime, timezone
+from typing import List, Dict, Any, Optional
+from collections import deque
+import uvicorn
+
+# ---------------------------------------------------------------------------
+# App & CORS
+# ---------------------------------------------------------------------------
+>>>>>>> 6e9bd2496a7553bec49291037dacebb1e437e00b
 app = FastAPI(
     title="PhishShield AI",
     description="Real-time phishing & smishing detection — Hackathon Edition",
@@ -39,17 +62,26 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
+<<<<<<< HEAD
     allow_origins=["*"],      # open for local demo; tighten in production
+=======
+    allow_origins=["*"],
+>>>>>>> 6e9bd2496a7553bec49291037dacebb1e437e00b
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # ---------------------------------------------------------------------------
+<<<<<<< HEAD
 # In-memory telemetry (demo only — resets when you stop the server)
 # ---------------------------------------------------------------------------
 # ANALYSIS_HISTORY: last N analyses (newest first)
 # STATS: simple counters shown on /api/stats and used for health info
+=======
+# In-memory telemetry (resets on restart — perfect for demo)
+# ---------------------------------------------------------------------------
+>>>>>>> 6e9bd2496a7553bec49291037dacebb1e437e00b
 ANALYSIS_HISTORY: deque = deque(maxlen=100)
 STATS = {
     "total_analyzed": 0,
@@ -60,9 +92,13 @@ STATS = {
 }
 
 # ---------------------------------------------------------------------------
+<<<<<<< HEAD
 # Synthetic training corpus
 # Label 0 = safe, Label 1 = phishing / smishing
 # In a real product you would train on a much larger labeled dataset.
+=======
+# Synthetic training corpus (safe vs phishing/smishing)
+>>>>>>> 6e9bd2496a7553bec49291037dacebb1e437e00b
 # ---------------------------------------------------------------------------
 SAFE_MESSAGES = [
     "Hi, your order #12345 has been shipped. Track it here: https://www.amazon.com/track/12345",
@@ -110,6 +146,7 @@ PHISHING_MESSAGES = [
     "Free Bitcoin giveaway! Send 0.01 BTC to receive 1 BTC back: http://btc-double.win",
 ]
 
+<<<<<<< HEAD
 # Build training arrays: texts + binary labels
 X_train = SAFE_MESSAGES + PHISHING_MESSAGES
 y_train = [0] * len(SAFE_MESSAGES) + [1] * len(PHISHING_MESSAGES)
@@ -132,6 +169,20 @@ model = Pipeline([
         class_weight="balanced", # handle any class imbalance
         random_state=42,
     )),
+=======
+X_train = SAFE_MESSAGES + PHISHING_MESSAGES
+y_train = [0] * len(SAFE_MESSAGES) + [1] * len(PHISHING_MESSAGES)
+
+model = Pipeline([
+    ("tfidf", TfidfVectorizer(
+        max_features=4000,
+        ngram_range=(1, 2),
+        stop_words="english",
+        lowercase=True,
+        sublinear_tf=True,
+    )),
+    ("clf", LogisticRegression(max_iter=1200, C=1.2, class_weight="balanced", random_state=42)),
+>>>>>>> 6e9bd2496a7553bec49291037dacebb1e437e00b
 ])
 
 print("🛡️  Training PhishShield AI model...")
@@ -139,9 +190,14 @@ model.fit(X_train, y_train)
 print("✅  Model ready. Serving on http://127.0.0.1:8000")
 
 # ---------------------------------------------------------------------------
+<<<<<<< HEAD
 # Heuristic signals (rule-based, complementary to ML)
 # ---------------------------------------------------------------------------
 # Words/phrases that create pressure to act quickly
+=======
+# Heuristics
+# ---------------------------------------------------------------------------
+>>>>>>> 6e9bd2496a7553bec49291037dacebb1e437e00b
 URGENCY_KEYWORDS = [
     "urgent", "immediately", "asap", "act now", "limited time", "expires",
     "final notice", "account locked", "suspended", "verify now", "click here",
@@ -151,13 +207,17 @@ URGENCY_KEYWORDS = [
     "wire transfer", "gift card", "double your", "send bitcoin",
 ]
 
+<<<<<<< HEAD
 # TLDs / substrings often seen in throwaway phishing domains
+=======
+>>>>>>> 6e9bd2496a7553bec49291037dacebb1e437e00b
 SUSPICIOUS_TLDS = [
     ".ru", ".tk", ".xyz", ".top", ".info", ".cc", ".ga", ".ml", ".cf", ".gq",
     ".bit", ".win", ".online", ".support", ".biz", ".me", ".today", ".delivery",
     ".claim", ".verify", ".secure", ".login",
 ]
 
+<<<<<<< HEAD
 # Extra URL patterns: raw IPs, brand-looking hyphens, common shorteners
 SUSPICIOUS_PATTERNS = [
     r"http://\d+\.\d+\.\d+\.\d+",                                    # raw IP
@@ -182,6 +242,23 @@ def analyze_urls(urls: List[str]) -> Dict[str, Any]:
     Check each URL for suspicious TLDs, raw IPs, or known bad patterns.
     Returns { suspicious: bool, reasons: [str, ...] }.
     """
+=======
+SUSPICIOUS_PATTERNS = [
+    r"http://\d+\.\d+\.\d+\.\d+",          # raw IP
+    r"https?://[^/]*-(login|secure|verify|account|bank|update)\.",  # brand impersonation
+    r"bit\.ly|tinyurl|t\.co|goo\.gl",      # shorteners (demo signal)
+]
+
+def extract_urls(text: str) -> List[str]:
+    pattern = r'https?://[^\s<>"{}|\\^`\[\]]+|www\.[^\s<>"{}|\\^`\[\]]+'
+    return re.findall(pattern, text, re.IGNORECASE)
+
+def count_urgency(text: str) -> int:
+    lower = text.lower()
+    return sum(1 for kw in URGENCY_KEYWORDS if kw in lower)
+
+def analyze_urls(urls: List[str]) -> Dict[str, Any]:
+>>>>>>> 6e9bd2496a7553bec49291037dacebb1e437e00b
     suspicious = False
     reasons = []
     for url in urls:
@@ -199,13 +276,17 @@ def analyze_urls(urls: List[str]) -> Dict[str, Any]:
                 break
     return {"suspicious": suspicious, "reasons": list(set(reasons))}
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 6e9bd2496a7553bec49291037dacebb1e437e00b
 def calculate_threat_score(
     ml_prob: float,
     urgency: int,
     has_url: bool,
     url_info: Dict[str, Any],
 ) -> float:
+<<<<<<< HEAD
     """
     Fuse ML probability with heuristic boosts into a 0–100 score.
 
@@ -215,6 +296,8 @@ def calculate_threat_score(
       - Any URL present  → +6
       - Suspicious URL   → +14
     """
+=======
+>>>>>>> 6e9bd2496a7553bec49291037dacebb1e437e00b
     score = ml_prob * 65.0
     score += min(urgency * 7.0, 21.0)
     if has_url:
@@ -223,18 +306,26 @@ def calculate_threat_score(
         score += 14.0
     return min(round(score, 1), 100.0)
 
+<<<<<<< HEAD
 
 def verdict_from_score(score: float) -> str:
     """Map numeric score → human-readable verdict."""
+=======
+def verdict_from_score(score: float) -> str:
+>>>>>>> 6e9bd2496a7553bec49291037dacebb1e437e00b
     if score >= 70:
         return "HIGH RISK – Likely Phishing / Smishing"
     if score >= 40:
         return "MEDIUM RISK – Suspicious"
     return "LOW RISK – Appears Safe"
 
+<<<<<<< HEAD
 
 def advice_from_score(score: float) -> str:
     """Actionable guidance shown in the dashboard."""
+=======
+def advice_from_score(score: float) -> str:
+>>>>>>> 6e9bd2496a7553bec49291037dacebb1e437e00b
     if score >= 70:
         return (
             "Do NOT click any links or share credentials. Report the message to your "
@@ -251,12 +342,19 @@ def advice_from_score(score: float) -> str:
     )
 
 # ---------------------------------------------------------------------------
+<<<<<<< HEAD
 # Pydantic request / response schemas (API contract)
+=======
+# Schemas
+>>>>>>> 6e9bd2496a7553bec49291037dacebb1e437e00b
 # ---------------------------------------------------------------------------
 class AnalyzeRequest(BaseModel):
     text: str = Field(..., min_length=1, max_length=10000)
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 6e9bd2496a7553bec49291037dacebb1e437e00b
 class AnalyzeResponse(BaseModel):
     request_id: str
     verdict: str
@@ -270,11 +368,18 @@ class AnalyzeResponse(BaseModel):
     timestamp: str
 
 # ---------------------------------------------------------------------------
+<<<<<<< HEAD
 # API routes
 # ---------------------------------------------------------------------------
 @app.get("/")
 def root():
     """Service info and available endpoints."""
+=======
+# Routes
+# ---------------------------------------------------------------------------
+@app.get("/")
+def root():
+>>>>>>> 6e9bd2496a7553bec49291037dacebb1e437e00b
     return {
         "service": "PhishShield AI",
         "version": "2.0.0",
@@ -282,12 +387,17 @@ def root():
         "endpoints": ["/api/analyze", "/api/health", "/api/stats", "/api/history"],
     }
 
+<<<<<<< HEAD
 
 @app.get("/api/health")
 def health():
     """
     Lightweight health check used by the dashboard "Engine Online" indicator.
     """
+=======
+@app.get("/api/health")
+def health():
+>>>>>>> 6e9bd2496a7553bec49291037dacebb1e437e00b
     return {
         "status": "healthy",
         "model_loaded": True,
@@ -295,15 +405,21 @@ def health():
         "total_analyzed": STATS["total_analyzed"],
     }
 
+<<<<<<< HEAD
 
 @app.get("/api/stats")
 def stats():
     """Aggregate counters for the current server process."""
+=======
+@app.get("/api/stats")
+def stats():
+>>>>>>> 6e9bd2496a7553bec49291037dacebb1e437e00b
     return {
         **STATS,
         "history_size": len(ANALYSIS_HISTORY),
     }
 
+<<<<<<< HEAD
 
 @app.get("/api/history")
 def history(limit: int = 20):
@@ -324,26 +440,48 @@ def analyze(request: AnalyzeRequest):
     5. Update in-memory stats/history
     6. Return structured JSON for the dashboard
     """
+=======
+@app.get("/api/history")
+def history(limit: int = 20):
+    limit = max(1, min(limit, 100))
+    return {"items": list(ANALYSIS_HISTORY)[:limit]}
+
+@app.post("/api/analyze", response_model=AnalyzeResponse)
+def analyze(request: AnalyzeRequest):
+>>>>>>> 6e9bd2496a7553bec49291037dacebb1e437e00b
     t0 = time.perf_counter()
     text = request.text.strip()
     if not text:
         raise HTTPException(status_code=400, detail="Text content is required")
 
+<<<<<<< HEAD
     # --- ML prediction (probability of class 1 = phishing) ---
     ml_prob = float(model.predict_proba([text])[0][1])
 
     # --- Heuristics ---
+=======
+    # ML
+    ml_prob = float(model.predict_proba([text])[0][1])
+
+    # Heuristics
+>>>>>>> 6e9bd2496a7553bec49291037dacebb1e437e00b
     urls = extract_urls(text)
     urgency = count_urgency(text)
     has_url = len(urls) > 0
     url_info = analyze_urls(urls)
 
+<<<<<<< HEAD
     # --- Fuse score + labels ---
+=======
+>>>>>>> 6e9bd2496a7553bec49291037dacebb1e437e00b
     threat_score = calculate_threat_score(ml_prob, urgency, has_url, url_info)
     verdict = verdict_from_score(threat_score)
     advice = advice_from_score(threat_score)
 
+<<<<<<< HEAD
     # --- Human-readable red flags for the UI ---
+=======
+>>>>>>> 6e9bd2496a7553bec49291037dacebb1e437e00b
     red_flags: List[str] = []
     if ml_prob >= 0.55:
         red_flags.append(f"ML model phishing confidence: {ml_prob * 100:.1f}%")
@@ -363,7 +501,11 @@ def analyze(request: AnalyzeRequest):
     request_id = str(uuid.uuid4())[:8]
     ts = datetime.now(timezone.utc).isoformat()
 
+<<<<<<< HEAD
     # --- Update process-wide stats ---
+=======
+    # Update stats
+>>>>>>> 6e9bd2496a7553bec49291037dacebb1e437e00b
     STATS["total_analyzed"] += 1
     if threat_score >= 70:
         STATS["high_risk"] += 1
@@ -372,7 +514,10 @@ def analyze(request: AnalyzeRequest):
     else:
         STATS["low_risk"] += 1
 
+<<<<<<< HEAD
     # Full result (includes preview for server-side history only)
+=======
+>>>>>>> 6e9bd2496a7553bec49291037dacebb1e437e00b
     result = {
         "request_id": request_id,
         "verdict": verdict,
@@ -382,7 +527,11 @@ def analyze(request: AnalyzeRequest):
         "mitigation_advice": advice,
         "features": {
             "url_count": len(urls),
+<<<<<<< HEAD
             "urls": urls[:8],  # cap list size in response
+=======
+            "urls": urls[:8],
+>>>>>>> 6e9bd2496a7553bec49291037dacebb1e437e00b
             "urgency_keyword_count": urgency,
             "has_suspicious_tld": url_info["suspicious"],
             "url_reasons": url_info["reasons"],
@@ -395,6 +544,7 @@ def analyze(request: AnalyzeRequest):
 
     ANALYSIS_HISTORY.appendleft(result)
 
+<<<<<<< HEAD
     # Response model excludes "preview" (kept only in server history)
     return AnalyzeResponse(**{k: v for k, v in result.items() if k != "preview"})
 
@@ -402,14 +552,27 @@ def analyze(request: AnalyzeRequest):
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     """Catch-all so the API always returns JSON on unexpected errors."""
+=======
+    return AnalyzeResponse(**{k: v for k, v in result.items() if k != "preview"})
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+>>>>>>> 6e9bd2496a7553bec49291037dacebb1e437e00b
     return JSONResponse(
         status_code=500,
         content={"detail": "Internal analysis error", "error": str(exc)[:200]},
     )
 
 # ---------------------------------------------------------------------------
+<<<<<<< HEAD
 # Entrypoint — run: python app.py
 # ---------------------------------------------------------------------------
 if __name__ == "__main__":
     # host 127.0.0.1 = local only; reload=True auto-restarts on code changes
     uvicorn.run("app:app", host="127.0.0.1", port=8000, reload=True)
+=======
+# Entrypoint
+# ---------------------------------------------------------------------------
+if __name__ == "__main__":
+    uvicorn.run("app:app", host="127.0.0.1", port=8000, reload=True)
+>>>>>>> 6e9bd2496a7553bec49291037dacebb1e437e00b
